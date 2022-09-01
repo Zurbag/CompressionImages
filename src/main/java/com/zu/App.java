@@ -23,14 +23,15 @@ import java.util.Collection;
 import java.util.Iterator;
 
 
-
 public class App {
     static JFrame jFrame = getFrame();
     static JPanel jPanel = new JPanel();
     static JSlider jSlider;
     //Переменная нужна для счетчика
     static int fileCounter = 0;
-    static JLabel jFileCounterLabel = new JLabel(String.valueOf(fileCounter));
+
+    static String nbsp = "                                             ";
+    static JLabel jFileCounterLabel = new JLabel(nbsp+"TOTAL FILES: " + fileCounter+nbsp);
     static JProgressBar jProgressBar;
 
     static int i = 0;
@@ -75,58 +76,49 @@ public class App {
             }
         });
 
-
-
         //Слайдер
-        //TODO Возможно тут нужно сделать ползунок со степенью компрессии
         jSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 20);
-        Border border = BorderFactory.createEtchedBorder( );
+        Border border = BorderFactory.createEtchedBorder();
         Border borderTitle = BorderFactory.createTitledBorder(border, "Compression Quality");
         jSlider.setBorder(borderTitle);
-        //Отрезки на слайдере
-        //Маленькие черточки
         jSlider.setMinorTickSpacing(25);
-        //Большие черточки
         jSlider.setMajorTickSpacing(50);
-        //Отрисовываем отрезки
         jSlider.setPaintTicks(true);
-        //Округляет значение ползунка на слайдере
         jSlider.setSnapToTicks(true);
-        //Прописывает числа на слайдере (нужно добавлять
-        // только когда доьбависл слайдерт на панель)
-        jSlider.setPaintLabels(true);
-
 
         //Прогресс бар
-        //TODO нужен аналог прогресс бара пока в Label количество файлов и уменьшать по ходу выполнения
-        jFileCounterLabel.setBounds(new Rectangle(30, 30));
-        jProgressBar = new JProgressBar(0,2000);
-        jProgressBar.setValue(0);
+        jProgressBar = new JProgressBar(0, 2000);
+        jProgressBar.setValue(i);
         jProgressBar.setStringPainted(true);
+        jProgressBar.setBackground(Color.white);
+        jProgressBar.setSize(200, 20);
 
         //TODO Также можно сделать чекбокс с тем что мы хотим сдеть изображение чернобелым
 
-        //TODO тут в отлеьном потоке должна зпуститься компрессия
+        //Количество файлов
+        jFileCounterLabel.setForeground(Color.RED);
+
+        //Старт сжатия
         JButton compressButton = new JButton("Compress");
         compressButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 compressor.start();
-
-
             }
         });
 
-        //TODO тут старбатывает jPopupMenu с вопросом точно ли отменить
+        //Отмена сжатия и выход
         JButton cancelButton = new JButton("  Cancel  ");
         cancelButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                int i = JOptionPane.showConfirmDialog(jPanel, "Do you want to stop converting and EXIT?",
+                int resultChose = JOptionPane.showOptionDialog(jPanel,
+                        "Do you want to STOP converting and EXIT?",
                         "Cancel",
-                        JOptionPane.ERROR_MESSAGE);
-                System.out.println(i);
-                if (i == 0){
+                        JOptionPane.DEFAULT_OPTION, JOptionPane.ERROR_MESSAGE,
+                        null,
+                        new String[]{"Yes","No"}, "No");
+                if (resultChose == 0) {
                     compressor.stop();
                     System.exit(0);
 
@@ -144,7 +136,6 @@ public class App {
         jPanel.add(outputDirectoryButton);
 
         jPanel.add(jSlider);
-
         jPanel.add(jProgressBar);
         jPanel.add(jFileCounterLabel);
 
@@ -163,7 +154,7 @@ public class App {
         jFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         Toolkit toolkit = Toolkit.getDefaultToolkit();
         Dimension dimension = toolkit.getScreenSize();
-        jFrame.setBounds(dimension.width / 2 - 230, dimension.height / 2 - 110, 460, 220);
+        jFrame.setBounds(dimension.width / 2 - 230, dimension.height / 2 - 110, 440, 220);
         jFrame.setResizable(false);
         return jFrame;
     }
@@ -174,10 +165,12 @@ public class App {
         String inPath = "";
         String outPath = "";
         int compressionQualityFromLabel;
+
         Compressor(String inPath, String outPath) {
             this.inPath = inPath;
             this.outPath = outPath;
         }
+
         @Override
         public void run() {
 
@@ -199,8 +192,9 @@ public class App {
             //Устанавливаю изначальное количество файлов на панель
             fileCounter = files.size();
             jProgressBar.setMaximum(files.size());
-            jProgressBar.setValue(fileCounter);;
-            jFileCounterLabel.setText(String.valueOf(fileCounter));
+            jProgressBar.setValue(i);
+
+            jFileCounterLabel.setText(nbsp+"TOTAL FILES: " + fileCounter+nbsp);
             jProgressBar.revalidate();
             jFileCounterLabel.revalidate();
 
@@ -218,9 +212,9 @@ public class App {
 
                     //Меняю счетчик и ревалидирую JPane
                     fileCounter = fileCounter - 1;
-                    jFileCounterLabel.setText(String.valueOf(fileCounter));
+                    jFileCounterLabel.setText(nbsp+"TOTAL FILES: " + fileCounter+nbsp);
+                    jProgressBar.setValue(++i);
 
-                    jProgressBar.setValue(fileCounter);;
 
 
                 } catch (Exception e) {
@@ -287,15 +281,15 @@ public class App {
 
             //Логика присвоения значений в степень компрессии
             // a float between 0 and 1 indicating the desired quality level.
-            if (jSlider.getValue() > 75){
+            if (jSlider.getValue() > 75) {
                 compressionQuality = 1.0f;
-            }else if (jSlider.getValue() > 50){
+            } else if (jSlider.getValue() > 50) {
                 compressionQuality = 0.8f;
-            }else if (jSlider.getValue() > 25){
+            } else if (jSlider.getValue() > 25) {
                 compressionQuality = 0.7f;
-            }else if (jSlider.getValue() > 0){
+            } else if (jSlider.getValue() > 0) {
                 compressionQuality = 0.3f;
-            }else if (jSlider.getValue() == 0){
+            } else if (jSlider.getValue() == 0) {
                 compressionQuality = 0.1f;
             }
 
@@ -306,22 +300,6 @@ public class App {
             imageOutputStream.close();
             writer.dispose();
         }
-
-//        public static void iterateProgressBar(){
-//            while (i <= 2000){
-//                jProgressBar.setValue(i);
-//                i = i+20;
-//                try {
-//                    Thread.sleep(150);
-//                }catch (Exception e){
-//
-//                }
-//            }
-//        }
-
-
     }
-
-
 
 }
