@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.sql.SQLOutput;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -184,7 +185,7 @@ public class App {
         public void compressImage(String inPath, String outPath) throws IOException {
 
             //TODO если в целевой папке есть файл файл из исходящей папки не брать
-
+            System.out.println("Start scanning");
             String path = inPath;
             String newFilePath = outPath;
             Collection<File> files = FileUtils.listFiles(new File(path), new String[]{"jpg"}, true);
@@ -201,6 +202,7 @@ public class App {
             for (File x : files
             ) {
                 String inputPath = x.getPath();
+                System.out.println(x.getPath());
                 String outputPath = inputPath.replace(path, newFilePath);
                 copyFileUsingApacheCommonsIO(x, new File(outputPath));
 
